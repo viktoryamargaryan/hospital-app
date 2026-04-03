@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedCore — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN TOKENS ══════════════════════════════════════════ */
+:root {
+  --bg:       #07111e;
+  --surface:  #0d1b2a;
+  --surface2: #112032;
+  --border:   #1a2d40;
+  --accent:   #00d4aa;
+  --blue:     #4f8ef7;
+  --amber:    #f0a232;
+  --danger:   #f05252;
+  --green:    #22c55e;
+  --purple:   #a855f7;
+  --text:     #dde6f0;
+  --muted:    #4a6180;
+  --sidebar-w: 230px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px}
+
+/* ══ SIDEBAR ════════════════════════════════════════════════ */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100}
+.logo{padding:22px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-name{font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:var(--accent)}
+.logo-name span{color:var(--text)}
+.logo-role{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
+.nav{flex:1;padding:10px 0;overflow-y:auto}
+.nav-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:12px 20px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:400;transition:all .18s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,212,170,.06);font-weight:500}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:rgba(240,82,82,.2);color:var(--danger);font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px}
+.sidebar-user{padding:13px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--bg);flex-shrink:0;cursor:pointer}
+.user-name{font-size:13px;font-weight:500}
+.user-role{font-size:11px;color:var(--muted)}
+.logout-btn{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;padding:4px;transition:color .2s}
+.logout-btn:hover{color:var(--danger)}
+
+/* ══ MAIN ═══════════════════════════════════════════════════ */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.page-title{font-family:'Fraunces',serif;font-size:18px;font-weight:300;flex-shrink:0}
+.search-wrap{flex:1;max-width:380px;position:relative}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 32px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--muted)}
+.btn-primary{padding:7px 16px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s;white-space:nowrap;margin-left:auto}
+.btn-primary:hover{background:#00bfa0;transform:translateY(-1px)}
+.content{flex:1;padding:22px 28px}
+.page{display:none}
+.page.active{display:block}
+
+/* ══ STATS GRID ═════════════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:border-color .2s,transform .2s;animation:fadeUp .4s ease both;display:flex;align-items:center;gap:14px}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.stat-card:nth-child(1){animation-delay:.05s}.stat-card:nth-child(2){animation-delay:.10s}
+.stat-card:nth-child(3){animation-delay:.15s}.stat-card:nth-child(4){animation-delay:.20s}
+.stat-card:nth-child(5){animation-delay:.25s}.stat-card:nth-child(6){animation-delay:.30s}
+.stat-card:nth-child(7){animation-delay:.35s}.stat-card:nth-child(8){animation-delay:.40s}
+.stat-icon-wrap{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.si-teal{background:rgba(0,212,170,.1)}.si-blue{background:rgba(79,142,247,.1)}
+.si-amber{background:rgba(240,162,50,.1)}.si-red{background:rgba(240,82,82,.1)}
+.si-green{background:rgba(34,197,94,.1)}.si-purple{background:rgba(168,85,247,.1)}
+.stat-val{font-size:24px;font-weight:600;line-height:1}
+.stat-label{font-size:12px;color:var(--muted);margin-top:3px}
+.stat-hint{font-size:11px;color:var(--accent);margin-top:2px}
+
+/* ══ TABLES ═════════════════════════════════════════════════ */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.section-title{font-family:'Fraunces',serif;font-size:17px;font-weight:300}
+.section-count{font-size:12px;color:var(--muted);margin-left:8px}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;font-family:'DM Sans',sans-serif;transition:all .18s}
+.chip:hover,.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,170,.06)}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:var(--surface2);padding:10px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:11px 13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .15s}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.td-id{color:var(--muted);font-size:12px}.td-name{font-weight:500}.td-secondary{color:var(--muted);font-size:13px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green)}
+.badge-blue{background:rgba(79,142,247,.12);color:var(--blue)}
+.badge-amber{background:rgba(240,162,50,.12);color:var(--amber)}
+.badge-red{background:rgba(240,82,82,.12);color:var(--danger)}
+.badge-teal{background:rgba(0,212,170,.12);color:var(--accent)}
+.badge-gray{background:rgba(74,97,128,.2);color:var(--muted)}
+.badge-purple{background:rgba(168,85,247,.12);color:var(--purple)}
+.btn-row{display:flex;gap:5px}
+.btn-sm{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .18s}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm.btn-danger:hover{border-color:var(--danger);color:var(--danger)}
+.btn-sm.btn-pay{border-color:var(--green);color:var(--green)}
+.btn-sm.btn-pay:hover{background:rgba(34,197,94,.1)}
+.btn-sm.btn-edit:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ══ PAGINATION ═════════════════════════════════════════════ */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-top:1px solid var(--border)}
+.pg-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s}
+.pg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pg-btn:disabled{opacity:.3;cursor:default}
+.pg-info{font-size:12px;color:var(--muted)}
+
+/* ══ STATE BOXES ════════════════════════════════════════════ */
+.state-box{text-align:center;padding:48px 24px;color:var(--muted)}
+.state-icon{font-size:38px;margin-bottom:10px}
+.state-msg{font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ MODALS ═════════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:100%;max-width:500px;box-shadow:0 24px 70px rgba(0,0,0,.7);animation:modalIn .22s ease;max-height:90vh;overflow-y:auto}
+.modal-wide{max-width:680px}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:300}
+.modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;transition:color .2s}
+.modal-close:hover{color:var(--text)}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-select option{background:var(--surface2)}
+.form-textarea{resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.btn-ghost{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-submit{padding:8px 20px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-submit:hover{background:#00bfa0}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed}
+
+/* ══ TABS (inside patient detail modal) ════════════════════ */
+.tab-bar{display:flex;gap:2px;margin-bottom:18px;background:var(--surface2);border-radius:8px;padding:4px}
+.tab-btn{flex:1;padding:7px;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border-radius:6px;transition:all .18s}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ══ TOAST ══════════════════════════════════════════════════ */
+#toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:1000;display:none;animation:toastIn .25s ease;max-width:340px}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--danger);color:#fff}
+#toast.info{background:var(--blue);color:#fff}
+
+/* ══ REPORT CARDS ═══════════════════════════════════════════ */
+.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .2s}
+.report-card:hover{border-color:var(--accent)}
+.report-card-title{font-weight:500;font-size:13px;margin-bottom:4px}
+.report-card-desc{font-size:12px;color:var(--muted)}
+
+/* ══ MINI STATS ═════════════════════════════════════════════ */
+.mini-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.mini-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:12px;color:var(--muted)}
+.mini-stat strong{color:var(--text);font-weight:600;margin-right:4px}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-name">Med<span>Core</span></div>
+    <div class="logo-role" id="sidebarRole">Hospital System</div>
+  </div>
+  <div class="nav">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">🏥</span> Dashboard</div>
+
+    <div class="nav-label">Clinical</div>
+    <div class="nav-item" data-page="patients"><span class="nav-icon">👤</span> Patients</div>
+    <div class="nav-item" data-page="doctors"><span class="nav-icon">🩺</span> Doctors</div>
+    <div class="nav-item" data-page="appointments"><span class="nav-icon">📅</span> Appointments</div>
+    <div class="nav-item" data-page="prescriptions"><span class="nav-icon">💊</span> Prescriptions</div>
+
+    <div class="nav-label">Operations</div>
+    <div class="nav-item" data-page="billing">
+      <span class="nav-icon">💳</span> Billing
+      <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" data-page="rooms"><span class="nav-icon">🚪</span> Rooms</div>
+    <div class="nav-item" data-page="departments"><span class="nav-icon">🏢</span> Departments</div>
+    <div class="nav-item" data-page="staff"><span class="nav-icon">👥</span> Staff</div>
+
+    <div class="nav-label">Analytics</div>
+    <div class="nav-item" data-page="reports"><span class="nav-icon">📊</span> Reports</div>
+
+    <div class="nav-label" id="adminSection" style="display:none">Admin</div>
+    <div class="nav-item" data-page="users" id="usersNav" style="display:none"><span class="nav-icon">🔐</span> Users</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="userAvatar" onclick="openChangePasswordModal()" title="Change password">A</div>
+    <div>
+      <div class="user-name" id="userName">Admin</div>
+      <div class="user-role" id="userRoleLabel">Administrator</div>
+    </div>
+    <button class="logout-btn" onclick="logout()" title="Sign out">⏏</button>
+  </div>
+</nav>
+
+<!-- ══ MAIN ═════════════════════════════════════════════════ -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="search-wrap" id="searchWrap" style="display:none">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search…">
+    </div>
+    <button class="btn-primary" id="addBtn" style="display:none" onclick="openAddModal()">+ Add New</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card" onclick="goTo('patients')">
+          <div class="stat-icon-wrap si-teal">👤</div>
+          <div><div class="stat-val" id="s-patients">—</div><div class="stat-label">Total Patients</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('doctors')">
+          <div class="stat-icon-wrap si-blue">🩺</div>
+          <div><div class="stat-val" id="s-doctors">—</div><div class="stat-label">Doctors</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('appointments')">
+          <div class="stat-icon-wrap si-amber">📅</div>
+          <div><div class="stat-val" id="s-appointments">—</div><div class="stat-label">Scheduled Apts</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('billing')">
+          <div class="stat-icon-wrap si-red">💳</div>
+          <div><div class="stat-val" id="s-bills">—</div><div class="stat-label">Pending Bills</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('departments')">
+          <div class="stat-icon-wrap si-purple">🏢</div>
+          <div><div class="stat-val" id="s-depts">—</div><div class="stat-label">Departments</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('rooms')">
+          <div class="stat-icon-wrap si-green">🚪</div>
+          <div><div class="stat-val" id="s-rooms">—</div><div class="stat-label">Vacant Rooms</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('staff')">
+          <div class="stat-icon-wrap si-blue">👥</div>
+          <div><div class="stat-val" id="s-staff">—</div><div class="stat-label">Staff Members</div><div class="stat-hint">View →</div></div>
+        </div>
+        <div class="stat-card" onclick="goTo('reports')">
+          <div class="stat-icon-wrap si-teal">💰</div>
+          <div><div class="stat-val" id="s-revenue">—</div><div class="stat-label">Total Revenue</div><div class="stat-hint">Reports →</div></div>
+        </div>
+      </div>
+      <div class="section-header">
+        <span class="section-title">Recent Appointments</span>
+        <button class="btn-ghost" style="font-size:12px" onclick="goTo('appointments')">View all →</button>
+      </div>
+      <div class="table-wrap" id="dashRecentTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ PATIENTS ══════════════════════════════════════════ -->
+    <div class="page" id="page-patients">
+      <div class="section-header">
+        <span class="section-title">Patients <span class="section-count" id="patientCount"></span></span>
+        <div class="filter-chips"></div>
+      </div>
+      <div class="table-wrap" id="patientsTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ DOCTORS ═══════════════════════════════════════════ -->
+    <div class="page" id="page-doctors">
+      <div class="section-header">
+        <span class="section-title">Medical Staff</span>
+        <div class="filter-chips" id="deptFilterChips"></div>
+      </div>
+      <div class="table-wrap" id="doctorsTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ APPOINTMENTS ══════════════════════════════════════ -->
+    <div class="page" id="page-appointments">
+      <div class="section-header">
+        <span class="section-title">Appointments <span class="section-count" id="aptCount"></span></span>
+        <div class="filter-chips">
+          <button class="chip active" onclick="setAptFilter('',this)">All</button>
+          <button class="chip" onclick="setAptFilter('Scheduled',this)">Scheduled</button>
+          <button class="chip" onclick="setAptFilter('Completed',this)">Completed</button>
+          <button class="chip" onclick="setAptFilter('Cancelled',this)">Cancelled</button>
+        </div>
+        <button class="btn-primary" onclick="openAddAptModal()">+ Book</button>
+      </div>
+      <div class="table-wrap" id="appointmentsTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ PRESCRIPTIONS ═════════════════════════════════════ -->
+    <div class="page" id="page-prescriptions">
+      <div class="section-header">
+        <span class="section-title">Prescription Summary</span>
+      </div>
+      <div class="table-wrap" id="prescriptionsTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ BILLING ═══════════════════════════════════════════ -->
+    <div class="page" id="page-billing">
+      <div class="section-header">
+        <span class="section-title">Billing <span class="section-count" id="billCount"></span></span>
+        <div class="filter-chips">
+          <button class="chip active" onclick="setBillingFilter('',this)">All</button>
+          <button class="chip" onclick="setBillingFilter('Pending',this)">Pending</button>
+          <button class="chip" onclick="setBillingFilter('Paid',this)">Paid</button>
+        </div>
+      </div>
+      <div class="table-wrap" id="billingTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ ROOMS ══════════════════════════════════════════════ -->
+    <div class="page" id="page-rooms">
+      <div class="section-header">
+        <span class="section-title">Rooms</span>
+        <div class="filter-chips">
+          <button class="chip active" onclick="setRoomFilter('',this)">All</button>
+          <button class="chip" onclick="setRoomFilter('Vacant',this)">Vacant</button>
+          <button class="chip" onclick="setRoomFilter('Occupied',this)">Occupied</button>
+        </div>
+      </div>
+      <div class="table-wrap" id="roomsTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ DEPARTMENTS ═══════════════════════════════════════ -->
+    <div class="page" id="page-departments">
+      <div class="section-header"><span class="section-title">Departments</span></div>
+      <div class="table-wrap" id="departmentsTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ STAFF ══════════════════════════════════════════════ -->
+    <div class="page" id="page-staff">
+      <div class="section-header"><span class="section-title">Staff Members</span></div>
+      <div class="table-wrap" id="staffTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ══ REPORTS ════════════════════════════════════════════ -->
+    <div class="page" id="page-reports">
+      <div class="section-header"><span class="section-title">Reports & Analytics</span></div>
+      <div class="report-grid">
+        <div class="report-card" onclick="loadReport('workload')">
+          <div class="report-card-title">🩺 Doctor Workload</div>
+          <div class="report-card-desc">Appointments per doctor with completion rates</div>
+        </div>
+        <div class="report-card" onclick="loadReport('revenue')">
+          <div class="report-card-title">💰 Department Revenue</div>
+          <div class="report-card-desc">Paid billing totals per department</div>
+        </div>
+        <div class="report-card" onclick="loadReport('unbilled')">
+          <div class="report-card-title">🧾 Unbilled Appointments</div>
+          <div class="report-card-desc">Completed appointments without a bill</div>
+        </div>
+        <div class="report-card" onclick="loadReport('safety')">
+          <div class="report-card-title">⚠️ Patient Safety Alerts</div>
+          <div class="report-card-desc">Patients with allergies or chronic conditions</div>
+        </div>
+        <div class="report-card" onclick="loadReport('noapt')">
+          <div class="report-card-title">👤 No-Appointment Patients</div>
+          <div class="report-card-desc">Registered patients who have never booked</div>
+        </div>
+        <div class="report-card" onclick="loadReport('insurance')">
+          <div class="report-card-title">🛡️ Insurance Directory</div>
+          <div class="report-card-desc">All patient insurance policies</div>
+        </div>
+      </div>
+      <div class="table-wrap" id="reportTable"><div class="state-box"><div class="state-icon">📊</div><div class="state-msg">Select a report above</div></div></div>
+    </div>
+
+    <!-- ══ USERS ══════════════════════════════════════════════ -->
+    <div class="page" id="page-users">
+      <div class="section-header">
+        <span class="section-title">System Users</span>
+        <button class="btn-primary" onclick="openAddUserModal()">+ Add User</button>
+      </div>
+      <div class="table-wrap" id="usersTable"><div class="state-box"><div class="spinner"></div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODALS ════════════════════════════════════════════════ -->
+
+<!-- Register / Edit Patient -->
+<div class="overlay" id="patientOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="patientModalTitle">Register Patient</div>
+      <button class="modal-close" onclick="closeModal('patientOverlay')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">First Name *</label>
+        <input class="form-input" id="pf_first" type="text" placeholder="Armen">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last Name *</label>
+        <input class="form-input" id="pf_last" type="text" placeholder="Vardanyan">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date of Birth</label>
+      <input class="form-input" id="pf_dob" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone</label>
+      <input class="form-input" id="pf_phone" type="text" placeholder="+374 9X XXX XXX">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Address</label>
+      <input class="form-input" id="pf_addr" type="text" placeholder="Yerevan, Street 12">
+    </div>
+    <input type="hidden" id="pf_id">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('patientOverlay')">Cancel</button>
+      <button class="btn-submit" id="savePatientBtn" onclick="submitPatient()">Register</button>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Detail (tabs: History, Insurance, Emergency) -->
+<div class="overlay" id="patientDetailOverlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" id="detailPatientName">Patient Details</div>
+      <button class="modal-close" onclick="closeModal('patientDetailOverlay')">✕</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('medical')">🏥 Medical History</button>
+      <button class="tab-btn" onclick="switchTab('insurance')">🛡️ Insurance</button>
+      <button class="tab-btn" onclick="switchTab('emergency')">🆘 Emergency Contacts</button>
+    </div>
+    <!-- Medical History Tab -->
+    <div class="tab-panel active" id="tab-medical">
+      <div id="medHistoryList"><div class="state-box"><div class="spinner"></div></div></div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Add Record</div>
+        <div class="form-group"><label class="form-label">Diagnosis</label><input class="form-input" id="mh_diag" placeholder="e.g. Type 2 Diabetes"></div>
+        <div class="form-group"><label class="form-label">Surgery History</label><input class="form-input" id="mh_surgery" placeholder="e.g. Appendectomy 2018"></div>
+        <div class="form-group"><label class="form-label">Allergies</label><input class="form-input" id="mh_allergy" placeholder="e.g. Penicillin, Aspirin"></div>
+        <button class="btn-submit" style="width:100%" onclick="addMedicalHistory()">+ Add Medical History</button>
+      </div>
+    </div>
+    <!-- Insurance Tab -->
+    <div class="tab-panel" id="tab-insurance">
+      <div id="insuranceList"><div class="state-box"><div class="spinner"></div></div></div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Add Insurance</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Provider *</label><input class="form-input" id="ins_provider" placeholder="INGO Armenia"></div>
+          <div class="form-group"><label class="form-label">Policy Number</label><input class="form-input" id="ins_policy" placeholder="POL-XXXX"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Coverage Details</label><textarea class="form-textarea" id="ins_coverage" placeholder="Inpatient, outpatient, dental…"></textarea></div>
+        <button class="btn-submit" style="width:100%" onclick="addInsurance()">+ Add Insurance</button>
+      </div>
+    </div>
+    <!-- Emergency Tab -->
+    <div class="tab-panel" id="tab-emergency">
+      <div id="emergencyList"><div class="state-box"><div class="spinner"></div></div></div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Add Contact</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="ec_name" placeholder="Sona Vardanyan"></div>
+          <div class="form-group"><label class="form-label">Relationship</label><input class="form-input" id="ec_rel" placeholder="Spouse"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="ec_phone" placeholder="+374 9X XXX XXX"></div>
+        <button class="btn-submit" style="width:100%" onclick="addEmergencyContact()">+ Add Contact</button>
+      </div>
+    </div>
+    <input type="hidden" id="detail_patient_id">
+  </div>
+</div>
+
+<!-- Book / Edit Appointment -->
+<div class="overlay" id="aptOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="aptModalTitle">Book Appointment</div>
+      <button class="modal-close" onclick="closeModal('aptOverlay')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Patient *</label>
+      <select class="form-select" id="af_patient"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Doctor *</label>
+      <select class="form-select" id="af_doctor"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input class="form-input" id="af_date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input class="form-input" id="af_time" type="time" value="09:00">
+      </div>
+    </div>
+    <input type="hidden" id="af_id">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('aptOverlay')">Cancel</button>
+      <button class="btn-submit" id="saveAptBtn" onclick="submitAppointment()">Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Issue Prescription -->
+<div class="overlay" id="prescriptionOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Issue Prescription</div>
+      <button class="modal-close" onclick="closeModal('prescriptionOverlay')">✕</button>
+    </div>
+    <div id="presAptInfo" style="background:var(--surface2);border-radius:8px;padding:10px 13px;margin-bottom:16px;font-size:13px;color:var(--muted)"></div>
+    <div class="form-group">
+      <label class="form-label">Medicine *</label>
+      <select class="form-select" id="pres_medicine"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dosage *</label>
+      <input class="form-input" id="pres_dosage" placeholder="e.g. 500mg twice daily">
+    </div>
+    <input type="hidden" id="pres_apt_id">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('prescriptionOverlay')">Cancel</button>
+      <button class="btn-submit" onclick="submitPrescription()">Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User -->
+<div class="overlay" id="addUserOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add System User</div>
+      <button class="modal-close" onclick="closeModal('addUserOverlay')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="uf_name" type="text" placeholder="Dr. Jane Smith"></div>
+    <div class="form-group"><label class="form-label">Username *</label><input class="form-input" id="uf_user" type="text" placeholder="jsmith"></div>
+    <div class="form-group"><label class="form-label">Password *</label><input class="form-input" id="uf_pass" type="password" placeholder="Min. 6 characters"></div>
+    <div class="form-group">
+      <label class="form-label">Role</label>
+      <select class="form-select" id="uf_role">
+        <option value="assistant">Assistant</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('addUserOverlay')">Cancel</button>
+      <button class="btn-submit" onclick="submitUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password -->
+<div class="overlay" id="changePasswordOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closeModal('changePasswordOverlay')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Current Password *</label><input class="form-input" id="cp_old" type="password" placeholder="Your current password"></div>
+    <div class="form-group"><label class="form-label">New Password *</label><input class="form-input" id="cp_new" type="password" placeholder="Min. 6 characters"></div>
+    <div class="form-group"><label class="form-label">Confirm New Password *</label><input class="form-input" id="cp_confirm" type="password" placeholder="Repeat new password"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('changePasswordOverlay')">Cancel</button>
+      <button class="btn-submit" onclick="submitChangePassword()">Change Password</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ JAVASCRIPT ════════════════════════════════════════════ -->
+<script>
+/* ── STATE ──────────────────────────────────────────────────── */
+let currentPage    = 'dashboard';
+let currentUser    = null;
+let searchTimer    = null;
+let patientPage    = 1;
+let aptPage        = 1;
+let billingPage    = 1;
+let aptFilter      = '';
+let billingFilter  = '';
+let roomFilter     = '';
+let aptSearch      = '';
+let billSearch     = '';
+let cachedPatients = [];
+let cachedDoctors  = [];
+let cachedMeds     = [];
+
+/* ── BOOT ───────────────────────────────────────────────────── */
+async function init() {
+  try {
+    currentUser = await apiFetch('/api/auth/me');
+  } catch {
+    window.location.href = '/login';
+    return;
+  }
+  if (currentUser.role === 'admin') {
+    document.getElementById('adminSection').style.display = '';
+    document.getElementById('usersNav').style.display     = '';
+  }
+  document.getElementById('userName').textContent     = currentUser.fullName;
+  document.getElementById('userRoleLabel').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Assistant';
+  document.getElementById('userAvatar').textContent   = currentUser.fullName.charAt(0).toUpperCase();
+  document.getElementById('sidebarRole').textContent  = currentUser.role === 'admin' ? '⭐ Administrator' : 'Assistant';
+
+  document.querySelectorAll('.nav-item[data-page]').forEach(item =>
+    item.addEventListener('click', () => goTo(item.dataset.page))
+  );
+  document.getElementById('searchInput').addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => handleSearch(this.value.trim()), 280);
+  });
+  document.querySelectorAll('.overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); })
+  );
+  loadDashboard();
+}
+
+/* ── API HELPER ─────────────────────────────────────────────── */
+async function apiFetch(url, options = {}) {
+  options.credentials = 'include';
+  if (options.body && typeof options.body === 'object') {
+    options.headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    options.body    = JSON.stringify(options.body);
+  }
+  const res  = await fetch(url, options);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+/* ── NAVIGATION ─────────────────────────────────────────────── */
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+  currentPage = page;
+
+  const titles = {
+    dashboard:'Dashboard', patients:'Patients', doctors:'Doctors',
+    appointments:'Appointments', prescriptions:'Prescriptions',
+    billing:'Billing', rooms:'Rooms', departments:'Departments',
+    staff:'Staff', reports:'Reports', users:'System Users'
+  };
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+
+  const searchPages = ['patients','doctors','appointments','billing','staff'];
+  document.getElementById('searchWrap').style.display = searchPages.includes(page) ? '' : 'none';
+  document.getElementById('searchInput').value = '';
+
+  const addBtn = document.getElementById('addBtn');
+  if (page === 'patients') {
+    addBtn.style.display = '';
+    addBtn.textContent   = '+ Register Patient';
+    document.getElementById('searchInput').placeholder = 'Search by name, phone, ID…';
+  } else {
+    addBtn.style.display = 'none';
+    if (page === 'doctors')       document.getElementById('searchInput').placeholder = 'Search by name or specialization…';
+    if (page === 'appointments')  document.getElementById('searchInput').placeholder = 'Search by patient or doctor name…';
+    if (page === 'billing')       document.getElementById('searchInput').placeholder = 'Search by patient name…';
+    if (page === 'staff')         document.getElementById('searchInput').placeholder = 'Search by name or role…';
+  }
+
+  const loaders = {
+    dashboard:     loadDashboard,
+    patients:      () => loadPatients(1,''),
+    doctors:       () => loadDoctors(''),
+    appointments:  () => loadAppointments(1,'',aptFilter),
+    prescriptions: loadAllPrescriptions,
+    billing:       () => loadBilling(1,'',billingFilter),
+    rooms:         () => loadRooms(roomFilter),
+    departments:   loadDepartments,
+    staff:         () => loadStaff(''),
+    users:         loadUsers,
+  };
+  loaders[page]?.();
+}
+
+function handleSearch(val) {
+  if (currentPage === 'patients')     loadPatients(1, val);
+  if (currentPage === 'doctors')      loadDoctors(val);
+  if (currentPage === 'appointments') loadAppointments(1, val, aptFilter);
+  if (currentPage === 'billing')      loadBilling(1, val, billingFilter);
+  if (currentPage === 'staff')        loadStaff(val);
+}
+
+function openAddModal() {
+  if (currentPage === 'patients') openPatientModal();
+}
+
+/* ── DASHBOARD ──────────────────────────────────────────────── */
+async function loadDashboard() {
+  try {
+    const stats = await apiFetch('/api/stats');
+    document.getElementById('s-patients').textContent    = stats.patients;
+    document.getElementById('s-doctors').textContent     = stats.doctors;
+    document.getElementById('s-appointments').textContent= stats.appointments;
+    document.getElementById('s-bills').textContent       = stats.pending_bills;
+    document.getElementById('s-depts').textContent       = stats.departments;
+    document.getElementById('s-rooms').textContent       = stats.rooms_free;
+    document.getElementById('s-staff').textContent       = stats.staff;
+    document.getElementById('s-revenue').textContent     = formatAMD(stats.revenue);
+    if (stats.pending_bills > 0) {
+      const b = document.getElementById('pendingBadge');
+      b.textContent = stats.pending_bills; b.style.display = '';
+    }
+    const { appointments } = await apiFetch('/api/appointments?limit=8');
+    renderDashRecent(appointments);
+  } catch(e) {
+    document.getElementById('dashRecentTable').innerHTML =
+      `<div class="state-box"><div class="state-icon">⚠️</div><div class="state-msg">Cannot reach backend. Make sure app.py is running.</div></div>`;
+  }
+}
+
+function renderDashRecent(list) {
+  if (!list?.length) { setEmpty('dashRecentTable','📅','No appointments yet.'); return; }
+  const rows = list.map(a => `
+    <tr>
+      <td class="td-id">#${a.AppointID}</td>
+      <td>${a.Date}</td><td class="td-secondary">${a.Time||'—'}</td>
+      <td class="td-name">${a.PatientName}</td>
+      <td class="td-secondary">${a.DoctorName}</td>
+      <td>${statusBadge(a.Status)}</td>
+    </tr>`).join('');
+  document.getElementById('dashRecentTable').innerHTML = `
+    <table>
+      <thead><tr><th>ID</th><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+/* ── PATIENTS ────────────────────────────────────────────────── */
+async function loadPatients(page=1, search='') {
+  patientPage = page;
+  setLoading('patientsTable');
+  try {
+    const data = await apiFetch(`/api/patients?page=${page}&limit=15&search=${enc(search)}`);
+    cachedPatients = data.patients;
+    document.getElementById('patientCount').textContent = `(${data.total} total)`;
+    if (!data.patients.length) { setEmpty('patientsTable','👤','No patients found.'); return; }
+
+    const isAdmin = currentUser?.role === 'admin';
+    const rows = data.patients.map(p => `
+      <tr>
+        <td class="td-id">#${p.PatientID}</td>
+        <td class="td-name">${p.FirstName} ${p.LastName}</td>
+        <td class="td-secondary">${p.Phone||'—'}</td>
+        <td class="td-secondary">${p.Address||'—'}</td>
+        <td>${p.DOB||'—'}</td>
+        <td>
+          <div class="btn-row">
+            <button class="btn-sm btn-edit" onclick="openPatientDetailModal(${p.PatientID},'${p.FirstName} ${p.LastName}')">Details</button>
+            <button class="btn-sm btn-edit" onclick="openEditPatientModal(${p.PatientID})">Edit</button>
+            ${isAdmin ? `<button class="btn-sm btn-danger" onclick="deletePatient(${p.PatientID})">Delete</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+
+    document.getElementById('patientsTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Address</th><th>DOB</th><th>Actions</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${paginationHtml(page, data.total, 15, 'patients', search)}`;
+  } catch(e) { setError('patientsTable', e.message); }
+}
+
+/* Open modal for NEW patient */
+function openPatientModal() {
+  document.getElementById('patientModalTitle').textContent = 'Register Patient';
+  document.getElementById('savePatientBtn').textContent = 'Register';
+  clearForm(['pf_first','pf_last','pf_dob','pf_phone','pf_addr']);
+  document.getElementById('pf_id').value = '';
+  document.getElementById('patientOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('pf_first').focus(), 80);
+}
+
+/* Open modal for EDIT */
+async function openEditPatientModal(pid) {
+  try {
+    const p = await apiFetch(`/api/patients/${pid}`);
+    document.getElementById('patientModalTitle').textContent = 'Edit Patient';
+    document.getElementById('savePatientBtn').textContent = 'Save Changes';
+    document.getElementById('pf_first').value = p.FirstName||'';
+    document.getElementById('pf_last').value  = p.LastName||'';
+    document.getElementById('pf_dob').value   = p.DOB||'';
+    document.getElementById('pf_phone').value = p.Phone||'';
+    document.getElementById('pf_addr').value  = p.Address||'';
+    document.getElementById('pf_id').value    = pid;
+    document.getElementById('patientOverlay').classList.add('open');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function submitPatient() {
+  const btn = document.getElementById('savePatientBtn');
+  const pid  = document.getElementById('pf_id').value;
+  const payload = {
+    FirstName: document.getElementById('pf_first').value.trim(),
+    LastName:  document.getElementById('pf_last').value.trim(),
+    DOB:       document.getElementById('pf_dob').value  || null,
+    Phone:     document.getElementById('pf_phone').value.trim(),
+    Address:   document.getElementById('pf_addr').value.trim(),
+  };
+  if (!payload.FirstName || !payload.LastName) {
+    showToast('First and Last name are required','error'); return;
+  }
+  btn.disabled = true;
+  try {
+    if (pid) {
+      await apiFetch(`/api/patients/${pid}`, { method:'PUT', body:payload });
+      showToast('Patient updated ✓','success');
+    } else {
+      await apiFetch('/api/patients', { method:'POST', body:payload });
+      showToast('Patient registered ✓','success');
+    }
+    closeModal('patientOverlay');
+    loadPatients(patientPage, document.getElementById('searchInput').value);
+  } catch(e) { showToast(e.message,'error'); }
+  finally    { btn.disabled = false; }
+}
+
+async function deletePatient(pid) {
+  if (!confirm('Delete this patient? All related records will also be removed.')) return;
+  try {
+    await apiFetch(`/api/patients/${pid}`, {method:'DELETE'});
+    showToast('Patient deleted','info');
+    loadPatients(patientPage, document.getElementById('searchInput').value);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── PATIENT DETAIL MODAL (tabs) ───────────────────────────── */
+async function openPatientDetailModal(pid, name) {
+  document.getElementById('detail_patient_id').value = pid;
+  document.getElementById('detailPatientName').textContent = name;
+  document.getElementById('patientDetailOverlay').classList.add('open');
+  switchTab('medical');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['medical','insurance','emergency'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  const pid = document.getElementById('detail_patient_id').value;
+  if (tab === 'medical')    loadMedHistory(pid);
+  if (tab === 'insurance')  loadInsurance(pid);
+  if (tab === 'emergency')  loadEmergencyContacts(pid);
+}
+
+async function loadMedHistory(pid) {
+  setLoading('medHistoryList');
+  try {
+    const rows = await apiFetch(`/api/patients/${pid}/medical-history`);
+    if (!rows.length) { setEmpty('medHistoryList','🏥','No medical history yet.'); return; }
+    document.getElementById('medHistoryList').innerHTML = rows.map(r => `
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative">
+        <div style="font-weight:500;margin-bottom:4px">${r.Diagnosis||'No diagnosis'}</div>
+        <div style="font-size:12px;color:var(--muted)">Surgery: ${r.SurgeryHistory||'None'}</div>
+        <div style="font-size:12px;color:var(--amber);margin-top:3px">${r.Allergies ? '⚠️ Allergies: '+r.Allergies : ''}</div>
+        <button class="btn-sm btn-danger" style="position:absolute;top:10px;right:10px" onclick="deleteMedHistory(${r.HistoryID})">×</button>
+      </div>`).join('');
+  } catch(e) { setError('medHistoryList', e.message); }
+}
+
+async function addMedicalHistory() {
+  const pid = document.getElementById('detail_patient_id').value;
+  const payload = {
+    Diagnosis:      document.getElementById('mh_diag').value.trim(),
+    SurgeryHistory: document.getElementById('mh_surgery').value.trim(),
+    Allergies:      document.getElementById('mh_allergy').value.trim(),
+  };
+  try {
+    await apiFetch(`/api/patients/${pid}/medical-history`, {method:'POST', body:payload});
+    showToast('Medical history added ✓','success');
+    clearForm(['mh_diag','mh_surgery','mh_allergy']);
+    loadMedHistory(pid);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteMedHistory(hid) {
+  if (!confirm('Delete this record?')) return;
+  try {
+    await apiFetch(`/api/medical-history/${hid}`, {method:'DELETE'});
+    showToast('Record deleted','info');
+    loadMedHistory(document.getElementById('detail_patient_id').value);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function loadInsurance(pid) {
+  setLoading('insuranceList');
+  try {
+    const rows = await apiFetch(`/api/patients/${pid}/insurance`);
+    if (!rows.length) { setEmpty('insuranceList','🛡️','No insurance records.'); return; }
+    document.getElementById('insuranceList').innerHTML = rows.map(r => `
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative">
+        <div style="font-weight:500">${r.ProviderName}</div>
+        <div style="font-size:12px;color:var(--muted)">Policy: ${r.PolicyNumber||'—'}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${r.CoverageDetails||''}</div>
+        <button class="btn-sm btn-danger" style="position:absolute;top:10px;right:10px" onclick="deleteInsurance(${r.InsuranceID})">×</button>
+      </div>`).join('');
+  } catch(e) { setError('insuranceList', e.message); }
+}
+
+async function addInsurance() {
+  const pid = document.getElementById('detail_patient_id').value;
+  const payload = {
+    ProviderName:    document.getElementById('ins_provider').value.trim(),
+    PolicyNumber:    document.getElementById('ins_policy').value.trim(),
+    CoverageDetails: document.getElementById('ins_coverage').value.trim(),
+  };
+  if (!payload.ProviderName) { showToast('Provider name is required','error'); return; }
+  try {
+    await apiFetch(`/api/patients/${pid}/insurance`, {method:'POST', body:payload});
+    showToast('Insurance added ✓','success');
+    clearForm(['ins_provider','ins_policy','ins_coverage']);
+    loadInsurance(pid);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteInsurance(iid) {
+  if (!confirm('Delete this insurance record?')) return;
+  try {
+    await apiFetch(`/api/insurance/${iid}`, {method:'DELETE'});
+    showToast('Deleted','info');
+    loadInsurance(document.getElementById('detail_patient_id').value);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function loadEmergencyContacts(pid) {
+  setLoading('emergencyList');
+  try {
+    const rows = await apiFetch(`/api/patients/${pid}/emergency-contacts`);
+    if (!rows.length) { setEmpty('emergencyList','🆘','No emergency contacts.'); return; }
+    document.getElementById('emergencyList').innerHTML = rows.map(r => `
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative">
+        <div style="font-weight:500">${r.ContactName} <span style="font-size:12px;color:var(--muted)">(${r.Relationship||'—'})</span></div>
+        <div style="font-size:12px;color:var(--muted)">📞 ${r.Phone||'—'}</div>
+        <button class="btn-sm btn-danger" style="position:absolute;top:10px;right:10px" onclick="deleteEC(${r.ContactID})">×</button>
+      </div>`).join('');
+  } catch(e) { setError('emergencyList', e.message); }
+}
+
+async function addEmergencyContact() {
+  const pid = document.getElementById('detail_patient_id').value;
+  const payload = {
+    ContactName:  document.getElementById('ec_name').value.trim(),
+    Relationship: document.getElementById('ec_rel').value.trim(),
+    Phone:        document.getElementById('ec_phone').value.trim(),
+  };
+  if (!payload.ContactName) { showToast('Contact name is required','error'); return; }
+  try {
+    await apiFetch(`/api/patients/${pid}/emergency-contacts`, {method:'POST', body:payload});
+    showToast('Contact added ✓','success');
+    clearForm(['ec_name','ec_rel','ec_phone']);
+    loadEmergencyContacts(pid);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteEC(cid) {
+  if (!confirm('Delete this contact?')) return;
+  try {
+    await apiFetch(`/api/emergency-contacts/${cid}`, {method:'DELETE'});
+    showToast('Deleted','info');
+    loadEmergencyContacts(document.getElementById('detail_patient_id').value);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── DOCTORS ─────────────────────────────────────────────────── */
+async function loadDoctors(search='') {
+  setLoading('doctorsTable');
+  try {
+    cachedDoctors = await apiFetch(`/api/doctors?search=${enc(search)}`);
+    if (!cachedDoctors.length) { setEmpty('doctorsTable','🩺','No doctors found.'); return; }
+    const rows = cachedDoctors.map(d => `
+      <tr>
+        <td class="td-id">#${d.DoctorID}</td>
+        <td class="td-name">${d.FullName}</td>
+        <td><span class="badge badge-blue">${d.Specialization}</span></td>
+        <td class="td-secondary">${d.LicenseNumber}</td>
+        <td>${d.Department}</td>
+      </tr>`).join('');
+    document.getElementById('doctorsTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Specialization</th><th>License</th><th>Department</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) { setError('doctorsTable', e.message); }
+}
+
+/* ── APPOINTMENTS ────────────────────────────────────────────── */
+function setAptFilter(f, el) {
+  aptFilter = f;
+  document.querySelectorAll('#page-appointments .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  loadAppointments(1, aptSearch, f);
+}
+
+async function loadAppointments(page=1, search='', status='') {
+  aptPage=page; aptSearch=search;
+  setLoading('appointmentsTable');
+  try {
+    const data = await apiFetch(`/api/appointments?page=${page}&limit=15&search=${enc(search)}&status=${status}`);
+    document.getElementById('aptCount').textContent = `(${data.total} total)`;
+    if (!data.appointments.length) { setEmpty('appointmentsTable','📅','No appointments found.'); return; }
+
+    const isAdmin = currentUser?.role === 'admin';
+    const rows = data.appointments.map(a => `
+      <tr>
+        <td class="td-id">#${a.AppointID}</td>
+        <td>${a.Date}</td>
+        <td class="td-secondary">${a.Time||'—'}</td>
+        <td class="td-name">${a.PatientName}</td>
+        <td class="td-secondary">${a.DoctorName}</td>
+        <td>${statusBadge(a.Status)}</td>
+        <td>
+          <div class="btn-row">
+            ${a.Status==='Scheduled' ? `
+              <button class="btn-sm" onclick="updateAptStatus(${a.AppointID},'Completed')">✓ Done</button>
+              <button class="btn-sm btn-danger" onclick="updateAptStatus(${a.AppointID},'Cancelled')">✕</button>` : ''}
+            <button class="btn-sm btn-edit" onclick="openEditAptModal(${a.AppointID})">Edit</button>
+            <button class="btn-sm" onclick="openPresModal(${a.AppointID},'${a.PatientName}','${a.DoctorName}')">💊 Rx</button>
+            ${isAdmin ? `<button class="btn-sm btn-danger" onclick="deleteApt(${a.AppointID})">Del</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+    document.getElementById('appointmentsTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${paginationHtml(page, data.total, 15, 'appointments', search)}`;
+  } catch(e) { setError('appointmentsTable', e.message); }
+}
+
+async function openAddAptModal() {
+  document.getElementById('aptModalTitle').textContent = 'Book Appointment';
+  document.getElementById('saveAptBtn').textContent = 'Book';
+  document.getElementById('af_id').value = '';
+  await populateAptDropdowns();
+  document.getElementById('af_date').valueAsDate = new Date();
+  document.getElementById('aptOverlay').classList.add('open');
+}
+
+async function openEditAptModal(aptId) {
+  try {
+    // Fetch appointment details via the list (filter by page won't work, so we pass it directly)
+    const data = await apiFetch(`/api/appointments?page=1&limit=1&search=${aptId}`);
+    // find by ID
+    const a = data.appointments.find(x => x.AppointID === aptId);
+    if (!a) { showToast('Appointment not found','error'); return; }
+
+    document.getElementById('aptModalTitle').textContent = 'Edit Appointment';
+    document.getElementById('saveAptBtn').textContent = 'Save Changes';
+    document.getElementById('af_id').value = aptId;
+    await populateAptDropdowns();
+    document.getElementById('af_patient').value = a.PatientID;
+    document.getElementById('af_doctor').value  = a.DoctorID;
+    document.getElementById('af_date').value    = a.Date;
+    document.getElementById('af_time').value    = a.Time ? a.Time.substring(0,5) : '09:00';
+    document.getElementById('aptOverlay').classList.add('open');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function populateAptDropdowns() {
+  if (!cachedPatients.length) {
+    const d = await apiFetch('/api/patients?limit=500');
+    cachedPatients = d.patients;
+  }
+  if (!cachedDoctors.length) cachedDoctors = await apiFetch('/api/doctors');
+  document.getElementById('af_patient').innerHTML =
+    cachedPatients.map(p => `<option value="${p.PatientID}">${p.FirstName} ${p.LastName}</option>`).join('');
+  document.getElementById('af_doctor').innerHTML =
+    cachedDoctors.map(d => `<option value="${d.DoctorID}">${d.FullName} — ${d.Specialization||''}</option>`).join('');
+}
+
+async function submitAppointment() {
+  const btn = document.getElementById('saveAptBtn');
+  const aid = document.getElementById('af_id').value;
+  const payload = {
+    PatientID: document.getElementById('af_patient').value,
+    DoctorID:  document.getElementById('af_doctor').value,
+    Date:      document.getElementById('af_date').value,
+    Time:      document.getElementById('af_time').value,
+  };
+  if (!payload.Date) { showToast('Date is required','error'); return; }
+  btn.disabled = true;
+  try {
+    if (aid) {
+      await apiFetch(`/api/appointments/${aid}`, {method:'PUT', body:payload});
+      showToast('Appointment updated ✓','success');
+    } else {
+      await apiFetch('/api/appointments', {method:'POST', body:payload});
+      showToast('Appointment booked ✓','success');
+    }
+    closeModal('aptOverlay');
+    loadAppointments(aptPage, aptSearch, aptFilter);
+  } catch(e) { showToast(e.message,'error'); }
+  finally    { btn.disabled = false; }
+}
+
+async function updateAptStatus(id, status) {
+  try {
+    await apiFetch(`/api/appointments/${id}`, {method:'PUT', body:{status}});
+    showToast(`Marked as ${status}`,'info');
+    loadAppointments(aptPage, aptSearch, aptFilter);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteApt(id) {
+  if (!confirm('Delete this appointment and all linked records?')) return;
+  try {
+    await apiFetch(`/api/appointments/${id}`, {method:'DELETE'});
+    showToast('Appointment deleted','info');
+    loadAppointments(aptPage, aptSearch, aptFilter);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── PRESCRIPTIONS ──────────────────────────────────────────── */
+async function openPresModal(aptId, patientName, doctorName) {
+  document.getElementById('pres_apt_id').value = aptId;
+  document.getElementById('presAptInfo').innerHTML =
+    `Apt #${aptId} — <strong>${patientName}</strong> with ${doctorName}`;
+  // Load medicines dropdown
+  if (!cachedMeds.length) cachedMeds = await apiFetch('/api/medicines');
+  document.getElementById('pres_medicine').innerHTML =
+    cachedMeds.map(m => `<option value="${m.MedicineID}">${m.Name} (${m.Unit||''})</option>`).join('');
+  document.getElementById('pres_dosage').value = '';
+  document.getElementById('prescriptionOverlay').classList.add('open');
+}
+
+async function submitPrescription() {
+  const aptId = document.getElementById('pres_apt_id').value;
+  const payload = {
+    MedicineID: document.getElementById('pres_medicine').value,
+    Dosage:     document.getElementById('pres_dosage').value.trim(),
+  };
+  if (!payload.Dosage) { showToast('Dosage is required','error'); return; }
+  try {
+    await apiFetch(`/api/appointments/${aptId}/prescriptions`, {method:'POST', body:payload});
+    showToast('Prescription issued ✓','success');
+    closeModal('prescriptionOverlay');
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* All prescriptions summary page */
+async function loadAllPrescriptions() {
+  setLoading('prescriptionsTable');
+  try {
+    // Use PatientMedicalSummary view logic
+    const rows = await apiFetch('/api/appointments?limit=200');
+    const apts = rows.appointments;
+    if (!apts.length) { setEmpty('prescriptionsTable','💊','No appointment data.'); return; }
+
+    // Gather prescriptions for each appointment (batch)
+    const allPres = [];
+    for (const a of apts.slice(0,50)) {
+      const pres = await apiFetch(`/api/appointments/${a.AppointID}/prescriptions`);
+      pres.forEach(p => allPres.push({...p, PatientName: a.PatientName, DoctorName: a.DoctorName, AptDate: a.Date}));
+    }
+    if (!allPres.length) { setEmpty('prescriptionsTable','💊','No prescriptions on record.'); return; }
+
+    const html = allPres.map(p => `
+      <tr>
+        <td class="td-id">#${p.PrescriptionID}</td>
+        <td class="td-name">${p.PatientName}</td>
+        <td class="td-secondary">${p.DoctorName}</td>
+        <td>${p.MedicineName} <span class="badge badge-gray">${p.Unit||''}</span></td>
+        <td>${p.Dosage}</td>
+        <td class="td-secondary">${p.DateIssued||'—'}</td>
+      </tr>`).join('');
+    document.getElementById('prescriptionsTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Medicine</th><th>Dosage</th><th>Issued</th></tr></thead>
+        <tbody>${html}</tbody>
+      </table>`;
+  } catch(e) { setError('prescriptionsTable', e.message); }
+}
+
+/* ── BILLING ─────────────────────────────────────────────────── */
+function setBillingFilter(f, el) {
+  billingFilter = f;
+  document.querySelectorAll('#page-billing .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  loadBilling(1, billSearch, f);
+}
+
+async function loadBilling(page=1, search='', status='') {
+  billingPage=page; billSearch=search;
+  setLoading('billingTable');
+  try {
+    const data = await apiFetch(`/api/billing?page=${page}&limit=15&search=${enc(search)}&status=${status}`);
+    document.getElementById('billCount').textContent = `(${data.total} total)`;
+    if (!data.bills.length) { setEmpty('billingTable','💳','No billing records.'); return; }
+
+    const rows = data.bills.map(b => `
+      <tr>
+        <td class="td-id">#${b.BillID}</td>
+        <td class="td-name">${b.PatientName}</td>
+        <td class="td-secondary">${b.DoctorName||'—'}</td>
+        <td style="font-weight:600">${formatAMD(b.TotalAmount)}</td>
+        <td>${b.PaymentStatus==='Paid'
+          ? '<span class="badge badge-green">Paid</span>'
+          : '<span class="badge badge-amber">Pending</span>'}</td>
+        <td class="td-secondary">${b.BillDate||'—'}</td>
+        <td>${b.PaymentStatus!=='Paid'
+          ? `<button class="btn-sm btn-pay" onclick="payBill(${b.BillID})">Mark Paid</button>` : ''}</td>
+      </tr>`).join('');
+
+    document.getElementById('billingTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${paginationHtml(page, data.total, 15, 'billing', search)}`;
+  } catch(e) { setError('billingTable', e.message); }
+}
+
+async function payBill(id) {
+  try {
+    await apiFetch(`/api/billing/${id}/pay`, {method:'PUT'});
+    showToast('Payment recorded ✓','success');
+    loadBilling(billingPage, billSearch, billingFilter);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── ROOMS ───────────────────────────────────────────────────── */
+function setRoomFilter(f, el) {
+  roomFilter = f;
+  document.querySelectorAll('#page-rooms .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  loadRooms(f);
+}
+
+async function loadRooms(status='') {
+  setLoading('roomsTable');
+  try {
+    const rows = await apiFetch(`/api/rooms?status=${status}`);
+    if (!rows.length) { setEmpty('roomsTable','🚪','No rooms found.'); return; }
+    const html = rows.map(r => `
+      <tr>
+        <td class="td-id">#${r.RoomID}</td>
+        <td class="td-name">${r.RoomNumber}</td>
+        <td>${r.RoomType||'—'}</td>
+        <td class="td-secondary">${r.Department}</td>
+        <td>${r.Status==='Vacant'
+          ? '<span class="badge badge-green">Vacant</span>'
+          : '<span class="badge badge-red">Occupied</span>'}</td>
+        <td>
+          ${r.Status==='Vacant'
+            ? `<button class="btn-sm" onclick="updateRoomStatus(${r.RoomID},'Occupied')">Mark Occupied</button>`
+            : `<button class="btn-sm" onclick="updateRoomStatus(${r.RoomID},'Vacant')">Mark Vacant</button>`}
+        </td>
+      </tr>`).join('');
+    document.getElementById('roomsTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Room No.</th><th>Type</th><th>Department</th><th>Status</th><th></th></tr></thead>
+        <tbody>${html}</tbody>
+      </table>`;
+  } catch(e) { setError('roomsTable', e.message); }
+}
+
+async function updateRoomStatus(id, status) {
+  try {
+    await apiFetch(`/api/rooms/${id}/status`, {method:'PUT', body:{status}});
+    showToast(`Room marked as ${status}`,'success');
+    loadRooms(roomFilter);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── DEPARTMENTS ─────────────────────────────────────────────── */
+async function loadDepartments() {
+  setLoading('departmentsTable');
+  try {
+    const rows = await apiFetch('/api/departments');
+    const html = rows.map(d => `
+      <tr>
+        <td class="td-id">#${d.DeptID}</td>
+        <td class="td-name">${d.DeptName}</td>
+        <td class="td-secondary">${d.Location||'—'}</td>
+        <td><span class="badge badge-blue">${d.DoctorCount} doctors</span></td>
+        <td><span class="badge badge-gray">${d.StaffCount} staff</span></td>
+        <td>${d.RoomCount} rooms <span class="td-secondary">(${d.OccupiedRooms} occupied)</span></td>
+      </tr>`).join('');
+    document.getElementById('departmentsTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Department</th><th>Location</th><th>Doctors</th><th>Staff</th><th>Rooms</th></tr></thead>
+        <tbody>${html}</tbody>
+      </table>`;
+  } catch(e) { setError('departmentsTable', e.message); }
+}
+
+/* ── STAFF ───────────────────────────────────────────────────── */
+async function loadStaff(search='') {
+  setLoading('staffTable');
+  try {
+    const rows = await apiFetch(`/api/staff?search=${enc(search)}`);
+    if (!rows.length) { setEmpty('staffTable','👥','No staff found.'); return; }
+    const html = rows.map(s => `
+      <tr>
+        <td class="td-id">#${s.StaffID}</td>
+        <td class="td-name">${s.FullName}</td>
+        <td><span class="badge badge-purple">${s.Role||'—'}</span></td>
+        <td class="td-secondary">${s.Department}</td>
+      </tr>`).join('');
+    document.getElementById('staffTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Department</th></tr></thead>
+        <tbody>${html}</tbody>
+      </table>`;
+  } catch(e) { setError('staffTable', e.message); }
+}
+
+/* ── REPORTS ─────────────────────────────────────────────────── */
+async function loadReport(type) {
+  setLoading('reportTable');
+  try {
+    const endpoints = {
+      workload:  '/api/reports/doctor-workload',
+      revenue:   '/api/reports/department-revenue',
+      unbilled:  '/api/reports/unbilled-appointments',
+      safety:    '/api/reports/patient-safety-alerts',
+      noapt:     '/api/reports/patients-no-appointment',
+      insurance: '/api/reports/insurance-summary',
+    };
+    const rows = await apiFetch(endpoints[type]);
+    if (!rows.length) { setEmpty('reportTable','📊','No data for this report.'); return; }
+
+    const configs = {
+      workload: {
+        headers: ['Doctor','Specialization','Dept','Total Apts','Completed','Cancelled'],
+        row: r => `<td class="td-name">${r.DoctorName}</td><td>${r.Specialization}</td><td class="td-secondary">${r.DeptName}</td>
+          <td><strong>${r.TotalAppointments}</strong></td>
+          <td><span class="badge badge-green">${r.CompletedAppointments}</span></td>
+          <td><span class="badge badge-red">${r.CancelledAppointments}</span></td>`
+      },
+      revenue: {
+        headers: ['Department','Bills Paid','Total Revenue'],
+        row: r => `<td class="td-name">${r.DeptName}</td>
+          <td>${r.BillCount}</td>
+          <td style="font-weight:600;color:var(--green)">${formatAMD(r.TotalRevenue)}</td>`
+      },
+      unbilled: {
+        headers: ['Apt ID','Date','Patient','Doctor','Status'],
+        row: r => `<td class="td-id">#${r.AppointID}</td><td>${r.Date}</td>
+          <td class="td-name">${r.PatientName}</td>
+          <td class="td-secondary">${r.DoctorName}</td>
+          <td>${statusBadge(r.Status)}</td>`
+      },
+      safety: {
+        headers: ['Patient','Allergies','Conditions','Emergency Contact','Phone'],
+        row: r => `<td class="td-name">${r.PatientName}</td>
+          <td style="color:var(--amber)">${r.Allergies||'—'}</td>
+          <td>${r.ChronicConditions||'—'}</td>
+          <td class="td-secondary">${r.EmergencyContact||'—'}</td>
+          <td class="td-secondary">${r.EmergencyPhone||'—'}</td>`
+      },
+      noapt: {
+        headers: ['ID','First Name','Last Name','Phone'],
+        row: r => `<td class="td-id">#${r.PatientID}</td>
+          <td class="td-name">${r.FirstName}</td><td>${r.LastName}</td>
+          <td class="td-secondary">${r.Phone||'—'}</td>`
+      },
+      insurance: {
+        headers: ['Patient','Provider','Policy #','Coverage'],
+        row: r => `<td class="td-name">${r.PatientName}</td>
+          <td>${r.ProviderName}</td>
+          <td class="td-secondary">${r.PolicyNumber||'—'}</td>
+          <td class="td-secondary">${r.CoverageDetails||'—'}</td>`
+      },
+    };
+
+    const cfg = configs[type];
+    const html = rows.map(r => `<tr>${cfg.row(r)}</tr>`).join('');
+    document.getElementById('reportTable').innerHTML = `
+      <table>
+        <thead><tr>${cfg.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${html}</tbody>
+      </table>`;
+  } catch(e) { setError('reportTable', e.message); }
+}
+
+/* ── USERS ───────────────────────────────────────────────────── */
+async function loadUsers() {
+  setLoading('usersTable');
+  try {
+    const rows = await apiFetch('/api/users');
+    const html = rows.map(u => `
+      <tr>
+        <td class="td-id">#${u.UserID}</td>
+        <td class="td-name">${u.FullName}</td>
+        <td class="td-secondary">${u.Username}</td>
+        <td>${u.Role==='admin'
+          ? '<span class="badge badge-amber">Admin</span>'
+          : '<span class="badge badge-blue">Assistant</span>'}</td>
+        <td class="td-secondary">${u.CreatedAt||'—'}</td>
+        <td>${u.UserID !== currentUser.id
+          ? `<button class="btn-sm btn-danger" onclick="deleteUser(${u.UserID})">Delete</button>` : ''}</td>
+      </tr>`).join('');
+    document.getElementById('usersTable').innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Role</th><th>Created</th><th></th></tr></thead>
+        <tbody>${html}</tbody>
+      </table>`;
+  } catch(e) { setError('usersTable', e.message); }
+}
+
+function openAddUserModal() { document.getElementById('addUserOverlay').classList.add('open'); }
+
+async function submitUser() {
+  const payload = {
+    fullName: document.getElementById('uf_name').value.trim(),
+    username: document.getElementById('uf_user').value.trim(),
+    password: document.getElementById('uf_pass').value,
+    role:     document.getElementById('uf_role').value,
+  };
+  if (!payload.fullName || !payload.username || !payload.password) {
+    showToast('All fields required','error'); return;
+  }
+  try {
+    await apiFetch('/api/auth/register', {method:'POST', body:payload});
+    showToast('User created ✓','success');
+    closeModal('addUserOverlay');
+    clearForm(['uf_name','uf_user','uf_pass']);
+    loadUsers();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteUser(id) {
+  if (!confirm('Delete this user?')) return;
+  try {
+    await apiFetch(`/api/users/${id}`, {method:'DELETE'});
+    showToast('User deleted','info');
+    loadUsers();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── CHANGE PASSWORD ─────────────────────────────────────────── */
+function openChangePasswordModal() {
+  clearForm(['cp_old','cp_new','cp_confirm']);
+  document.getElementById('changePasswordOverlay').classList.add('open');
+}
+
+async function submitChangePassword() {
+  const old_ = document.getElementById('cp_old').value;
+  const new_ = document.getElementById('cp_new').value;
+  const con_ = document.getElementById('cp_confirm').value;
+  if (!old_ || !new_ || !con_) { showToast('All fields required','error'); return; }
+  if (new_ !== con_)           { showToast('New passwords do not match','error'); return; }
+  if (new_.length < 6)         { showToast('New password must be at least 6 characters','error'); return; }
+  try {
+    await apiFetch('/api/auth/change-password', {method:'PUT', body:{oldPassword:old_, newPassword:new_}});
+    showToast('Password changed ✓','success');
+    closeModal('changePasswordOverlay');
+    clearForm(['cp_old','cp_new','cp_confirm']);
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+/* ── AUTH ────────────────────────────────────────────────────── */
+async function logout() {
+  try { await apiFetch('/api/auth/logout', {method:'POST'}); } catch {}
+  window.location.href = '/login';
+}
+
+/* ── PAGINATION ──────────────────────────────────────────────── */
+function paginationHtml(page, total, limit, section, search) {
+  const pages = Math.ceil(total / limit);
+  if (pages <= 1) return '';
+  return `
+    <div class="pagination">
+      <button class="pg-btn" onclick="pgGo('${section}',${page-1},'${search}')" ${page<=1?'disabled':''}>← Prev</button>
+      <span class="pg-info">Page ${page} of ${pages} · ${total} records</span>
+      <button class="pg-btn" onclick="pgGo('${section}',${page+1},'${search}')" ${page>=pages?'disabled':''}>Next →</button>
+    </div>`;
+}
+
+function pgGo(section, page, search) {
+  if (section==='patients')     loadPatients(page, search);
+  if (section==='appointments') loadAppointments(page, search, aptFilter);
+  if (section==='billing')      loadBilling(page, search, billingFilter);
+}
+
+/* ── HELPERS ─────────────────────────────────────────────────── */
+function statusBadge(s) {
+  const map = {Completed:'badge-green', Scheduled:'badge-blue', Cancelled:'badge-red'};
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function formatAMD(v) {
+  const n = parseFloat(v)||0;
+  return n >= 1000 ? (n/1000).toFixed(1)+'K AMD' : n.toLocaleString()+' AMD';
+}
+function enc(v) { return encodeURIComponent(v||''); }
+function setLoading(id) {
+  document.getElementById(id).innerHTML =
+    `<div class="state-box"><div class="spinner"></div><div class="state-msg">Loading…</div></div>`;
+}
+function setEmpty(id, icon, msg) {
+  document.getElementById(id).innerHTML =
+    `<div class="state-box"><div class="state-icon">${icon}</div><div class="state-msg">${msg}</div></div>`;
+}
+function setError(id, msg) {
+  document.getElementById(id).innerHTML =
+    `<div class="state-box"><div class="state-icon">⚠️</div><div class="state-msg">${msg}</div></div>`;
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function clearForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if(el) el.value=''; }); }
+
+let toastTimer;
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = type; t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.style.display='none', 3400);
+}
+
+init();
+</script>
+</body>
+</html>

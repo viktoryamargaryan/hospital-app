@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedCore — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #060d18;
+    --card:     #0d1929;
+    --border:   #172135;
+    --accent:   #00d4aa;
+    --accent2:  #4f8ef7;
+    --text:     #dde6f0;
+    --muted:    #4a6180;
+    --danger:   #f05252;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Atmospheric background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 50%, rgba(0,212,170,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 50%, rgba(79,142,247,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Grid lines decoration */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  .page-wrap {
+    display: flex;
+    width: 900px;
+    max-width: 95vw;
+    min-height: 540px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    z-index: 1;
+    animation: appear 0.5s ease;
+  }
+
+  @keyframes appear {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Left panel — branding */
+  .brand-panel {
+    flex: 1;
+    background: linear-gradient(135deg, #091422 0%, #0d2040 100%);
+    padding: 52px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-panel::before {
+    content: '✚';
+    position: absolute;
+    font-size: 320px;
+    right: -80px; bottom: -80px;
+    color: rgba(0,212,170,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .brand-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+  .brand-logo span { color: var(--text); }
+  .brand-tagline {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .brand-features { list-style: none; }
+  .brand-features li {
+    display: flex; align-items: center; gap: 12px;
+    color: #6b8aaa;
+    font-size: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .brand-features li:last-child { border-bottom: none; }
+  .feat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  .brand-footer { font-size: 11px; color: var(--muted); }
+
+  /* Right panel — login form */
+  .form-panel {
+    width: 380px;
+    background: var(--card);
+    padding: 52px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .form-title {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-weight: 300;
+  }
+  .form-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%;
+    background: #0a1520;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,170,0.08);
+  }
+  .form-input::placeholder { color: var(--muted); }
+
+  .btn-login {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #060d18;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .btn-login:hover { background: #00bfa0; transform: translateY(-1px); }
+  .btn-login:active { transform: translateY(0); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .error-box {
+    background: rgba(240,82,82,0.1);
+    border: 1px solid rgba(240,82,82,0.25);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 13px;
+    color: var(--danger);
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 20px;
+  }
+  .hint strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- Left: branding -->
+  <div class="brand-panel">
+    <div>
+      <div class="brand-logo">Med<span>Core</span></div>
+      <div class="brand-tagline">Hospital Management System</div>
+    </div>
+
+    <ul class="brand-features">
+      <li><span class="feat-dot"></span>Patient registration &amp; records</li>
+      <li><span class="feat-dot"></span>Appointment scheduling</li>
+      <li><span class="feat-dot"></span>Billing &amp; payment tracking</li>
+      <li><span class="feat-dot"></span>Room &amp; department management</li>
+      <li><span class="feat-dot"></span>Role-based access control</li>
+    </ul>
+
+    <div class="brand-footer">© 2026 MedCore Hospital System</div>
+  </div>
+
+  <!-- Right: login form -->
+  <div class="form-panel">
+    <div class="form-title">Welcome back</div>
+    <div class="form-subtitle">Sign in to your hospital account</div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="username" type="text" placeholder="admin" autocomplete="username">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
+
+    
+  </div>
+
+</div>
+
+<script>
+  // Allow pressing Enter to submit
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('username').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const btn      = document.getElementById('loginBtn');
+    const errorBox = document.getElementById('errorBox');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    errorBox.style.display = 'none';
+
+    if (!username || !password) {
+      showError('Please enter your username and password.');
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Signing in…';
+
+    try {
+      const res  = await fetch('/api/auth/login', {
+        method:      'POST',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Save user info in localStorage for UI display
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = '/dashboard';
+      } else {
+        showError(data.error || 'Login failed.');
+      }
+    } catch (e) {
+      showError('Cannot connect to server. Is the backend running?');
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Sign In';
+    }
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent    = msg;
+    box.style.display  = 'block';
+  }
+</script>
+</body>
+</html>
