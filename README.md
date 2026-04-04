@@ -366,6 +366,6 @@ This project demonstrates real-world concepts from:
 - 📖 [Documentation](./docs/)
 - 🐛 [Report Bug](https://github.com/viktoryamargaryan/hospital-app/issues)
 - 💡 [Suggest Feature](https://github.com/viktoryamargaryan/hospital-app/issues)
-- 🔗 [Live Demo](https://tinyurl.com/medcore-hospital-center)
+- 🔗 [Live Demo](https://medcore-hospital-gvhvgwezcdehazb8.germanywestcentral-01.azurewebsites.net/login)
 
 **Happy Learning! 🚀**
