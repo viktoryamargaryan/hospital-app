@@ -19,10 +19,10 @@ app = Flask(__name__)
 # SECURITY CONFIGURATION
 # ============================================================
 # In production, SECRET_KEY comes from environment variable
-# For development, a default is provided (change it!)
+# For development, a default is provided
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
-    "inch_uzes_karox_es_grel"  # ⚠️ CHANGE THIS for production!
+    "inch_uzes_karox_es_grel"  
 )
 app.secret_key = SECRET_KEY
 
