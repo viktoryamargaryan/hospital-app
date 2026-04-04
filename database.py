@@ -1,7 +1,7 @@
 # database.py — Central database connection
 # Supports both local SQL Server and Azure SQL Database
 
-import pymssql
+import pyodbc
 import os
 from dotenv import load_dotenv
 
@@ -30,22 +30,37 @@ DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
 # ============================================================
 
 def get_connection():
+    """
+    Return a live pyodbc connection.
+    Automatically detects local vs cloud database.
+    Call this in every route.
+    """
+    
+    if DB_USER and DB_PASSWORD:
+        # Azure SQL Server connection (for cloud/production)
+        # Uses username and password authentication
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={SERVER};"
+            f"DATABASE={DATABASE};"
+            f"UID={DB_USER};"
+            f"PWD={DB_PASSWORD};"
+            f"Encrypt=yes;"
+            f"TrustServerCertificate=no;"
+            f"Connection Timeout=30;"
+        )
+    else:
+        # Local SQL Server connection (for development)
+        # Uses Windows Authentication (Trusted Connection)
+        conn_str = (
+            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+            f"SERVER={SERVER};"
+            f"DATABASE={DATABASE};"
+            f"Trusted_Connection=yes;"
+        )
+    
     try:
-        if DB_USER and DB_PASSWORD:
-            conn = pymssql.connect(
-                server=SERVER,
-                user=DB_USER,
-                password=DB_PASSWORD,
-                database=DATABASE,
-                timeout=30
-            )
-        else:
-            conn = pymssql.connect(
-                server=SERVER,
-                database=DATABASE,
-                timeout=30
-            )
-        return conn
+        return pyodbc.connect(conn_str)
     except Exception as e:
         print(f"Database connection error: {str(e)}")
         raise
@@ -63,12 +78,17 @@ def query(sql, params=(), one=False):
     conn = None
     try:
         conn = get_connection()
-        cursor = conn.cursor(as_dict=True)
+        cursor = conn.cursor()
         cursor.execute(sql, params)
+        
+        cols = [col[0] for col in cursor.description]
+        
         if one:
-            return cursor.fetchone()
+            row = cursor.fetchone()
+            return dict(zip(cols, row)) if row else None
+        
         rows = cursor.fetchall()
-        return rows if rows else []
+        return [dict(zip(cols, row)) for row in rows]
     
     except Exception as e:
         print(f"Query error: {str(e)}")
