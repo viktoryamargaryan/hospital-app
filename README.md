@@ -314,7 +314,8 @@ This project is open source and available under the MIT License.
 
 ## 👨‍💻 Authors
 
-- **Viktory Margaryan** - Initial development and database design
+- **Viktory Margaryan** — System Architecture Design, Database Development, Backend Programming, Project Deployment
+- **Lilit Zalinyan** — Database Design Support, Backend Development, Feature Implementation, System Testing
 
 ## 🎯 Future Roadmap
 
@@ -363,7 +364,7 @@ This project demonstrates real-world concepts from:
 ---
 
 ### Quick Links
-- 📖 [Documentation](./docs/)
+- 📖 [Documentation](https://ufar2020-my.sharepoint.com/:w:/g/personal/i22_margaryan_viktorya_etud_ufar_am/IQB11GZSFs_ORIiLxmSDjZzxAYQIiIvodYlwljzRfbXg8QY?e=t3eDrS)
 - 🐛 [Report Bug](https://github.com/viktoryamargaryan/hospital-app/issues)
 - 💡 [Suggest Feature](https://github.com/viktoryamargaryan/hospital-app/issues)
 - 🔗 [Live Demo](https://medcore-hospital-gvhvgwezcdehazb8.germanywestcentral-01.azurewebsites.net/login)
